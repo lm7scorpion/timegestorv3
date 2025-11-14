@@ -1,0 +1,2603 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tiempo Diario</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 50%, #16213e 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #9ca3af;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Botones */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4), 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: rgba(239, 68, 68, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-icon {
+            padding: 0.875rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-icon:active {
+            transform: scale(0.95);
+        }
+
+        /* Grid de estadísticas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 30px rgba(59, 130, 246, 0.2), 0 10px 15px rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .stat-card.green {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .stat-card.green:hover {
+            box-shadow: 0 20px 30px rgba(34, 197, 94, 0.2), 0 10px 15px rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+
+        .stat-card.purple {
+            background: rgba(168, 85, 247, 0.1);
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .stat-card.purple:hover {
+            box-shadow: 0 20px 30px rgba(168, 85, 247, 0.2), 0 10px 15px rgba(168, 85, 247, 0.15);
+            border-color: rgba(168, 85, 247, 0.4);
+        }
+
+        .stat-card.orange {
+            background: rgba(249, 115, 22, 0.1);
+            border-color: rgba(249, 115, 22, 0.3);
+        }
+
+        .stat-card.orange:hover {
+            box-shadow: 0 20px 30px rgba(249, 115, 22, 0.2), 0 10px 15px rgba(249, 115, 22, 0.15);
+            border-color: rgba(249, 115, 22, 0.4);
+        }
+
+        .stat-card.yellow {
+            background: rgba(234, 179, 8, 0.1);
+            border-color: rgba(234, 179, 8, 0.3);
+        }
+
+        .stat-card.yellow:hover {
+            box-shadow: 0 20px 30px rgba(234, 179, 8, 0.2), 0 10px 15px rgba(234, 179, 8, 0.15);
+            border-color: rgba(234, 179, 8, 0.4);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        /* Rachas */
+        .rachas-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Actividades */
+        .actividad-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .actividad-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.3), 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .actividad-card.activa {
+            border-color: #3b82f6;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4), 0 20px 40px rgba(59, 130, 246, 0.2);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, #1e293b 50%, #0f172a 100%);
+        }
+
+        .actividad-card.completada {
+            border-color: #22c55e;
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.4), 0 20px 40px rgba(34, 197, 94, 0.2);
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, #1e293b 50%, #0f172a 100%);
+        }
+
+        .actividad-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .actividad-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex: 1;
+        }
+
+        .actividad-emoji {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .actividad-details {
+            flex: 1;
+        }
+
+        .actividad-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .actividad-nombre {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .actividad-duracion {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .badge-completada {
+            background: #22c55e;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .actividad-progreso {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .tiempo-display {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .progress-container {
+            flex: 1;
+            max-width: 400px;
+            margin-right: 2rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        .actividad-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-play {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .btn-play:hover {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4), 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-pause {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            animation: pulse-glow 2s infinite;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-pause:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.5), 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { 
+                opacity: 1;
+                box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+            }
+            50% { 
+                opacity: 0.85;
+                box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+            }
+        }
+
+        .btn-reset {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-reset:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-note {
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-note:hover {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-view {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .btn-view:hover {
+            background: rgba(168, 85, 247, 0.25);
+            border-color: rgba(168, 85, 247, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
+        }
+
+        .badge-count {
+            position: absolute;
+            top: -0.375rem;
+            right: -0.375rem;
+            background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+            color: white;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.625rem;
+            font-weight: 700;
+            border: 2px solid #0f172a;
+            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.5);
+        }
+
+        .btn-edit {
+            background: rgba(249, 115, 22, 0.15);
+            color: #fdba74;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-edit:hover {
+            background: rgba(249, 115, 22, 0.25);
+            border-color: rgba(249, 115, 22, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
+        }
+
+        /* Progreso Semanal */
+        .semana-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .semana-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .semana-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+        }
+
+        .semana-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1rem;
+        }
+
+        .dia-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .dia-card.hoy {
+            background: rgba(59, 130, 246, 0.3);
+            border: 2px solid #3b82f6;
+        }
+
+        .dia-nombre {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .dia-count {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .dia-badge {
+            color: #3b82f6;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 1.75rem;
+            cursor: pointer;
+            padding: 0;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-close:hover {
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            color: #d1d5db;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #6b7280;
+        }
+
+        .emoji-input {
+            text-align: center;
+            font-size: 2rem;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.75rem;
+        }
+
+        .color-option {
+            height: 3.5rem;
+            border-radius: 0.75rem;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.05);
+        }
+
+        .color-option.selected {
+            border-color: white;
+            transform: scale(1.1);
+        }
+
+        .slider-container {
+            margin-top: 0.5rem;
+        }
+
+        .slider {
+            width: 100%;
+            height: 0.5rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            color: #9ca3af;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .preview-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+        }
+
+        .preview-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .preview-emoji {
+            font-size: 2rem;
+        }
+
+        .preview-name {
+            font-weight: bold;
+        }
+
+        .preview-duration {
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        .preview-color {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+            margin-left: auto;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        textarea.form-input {
+            resize: none;
+            font-family: inherit;
+        }
+
+        .notas-lista {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .nota-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        .nota-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nota-header {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nota-icon {
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            color: #93c5fd;
+        }
+
+        .nota-fecha {
+            color: #9ca3af;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nota-texto {
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #9ca3af;
+            padding: 2rem;
+        }
+
+        /* Celebración */
+        .celebracion-modal .modal-content {
+            background: linear-gradient(135deg, #f97316 0%, #dc2626 100%);
+            border: 4px solid #facc15;
+            text-align: center;
+        }
+
+        .celebracion-icon {
+            font-size: 6rem;
+            margin-bottom: 1rem;
+        }
+
+        .celebracion-title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .celebracion-dias {
+            font-size: 5rem;
+            font-weight: 900;
+            color: #fef08a;
+            margin-bottom: 1rem;
+        }
+
+        .celebracion-mensaje {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+
+        .btn-celebracion {
+            background: white;
+            color: #f97316;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .btn-celebracion:hover {
+            transform: scale(1.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .rachas-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .semana-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .progress-container {
+                max-width: 250px;
+                margin-right: 1rem;
+            }
+
+            .actividad-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .actividad-buttons {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Colores para actividades */
+        .color-blue { background: #3b82f6; }
+        .color-pink { background: #ec4899; }
+        .color-purple { background: #a855f7; }
+        .color-green { background: #22c55e; }
+        .color-orange { background: #f97316; }
+        .color-indigo { background: #6366f1; }
+        .color-red { background: #ef4444; }
+        .color-yellow { background: #eab308; }
+        .color-cyan { background: #06b6d4; }
+        .color-emerald { background: #10b981; }
+        .color-fuchsia { background: #d946ef; }
+        .color-lime { background: #84cc16; }
+
+        /* FOOTER ESPECTACULAR DEL DESARROLLADOR */
+        .developer-footer {
+            margin-top: 4rem;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 25%, #1a1a2e 50%, #16213e 75%, #1e293b 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            border-radius: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(59, 130, 246, 0.3);
+            border: 2px solid rgba(59, 130, 246, 0.2);
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .developer-footer::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .developer-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .developer-badge {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1.5rem;
+            border-radius: 2rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #93c5fd;
+            border: 2px solid rgba(59, 130, 246, 0.4);
+        }
+
+        .developer-name {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: white;
+            margin: 1rem 0;
+            text-shadow: 0 4px 20px rgba(59, 130, 246, 0.5);
+            letter-spacing: -1px;
+            line-height: 1.2;
+        }
+
+        .developer-name .highlight {
+            background: linear-gradient(45deg, #60a5fa, #3b82f6, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+
+        .developer-title {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .developer-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .dev-icon {
+            width: 3rem;
+            height: 3rem;
+            background: rgba(59, 130, 246, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s;
+            border: 2px solid rgba(59, 130, 246, 0.4);
+            cursor: pointer;
+        }
+
+        .dev-icon:hover {
+            transform: translateY(-5px) scale(1.1);
+            background: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);
+            border-color: rgba(59, 130, 246, 0.6);
+        }
+
+        .developer-quote {
+            margin-top: 2rem;
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.95);
+            font-style: italic;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 1.5rem;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 1rem;
+            border-left: 4px solid rgba(59, 130, 246, 0.6);
+        }
+
+        .sparkle {
+            display: inline-block;
+            animation: sparkle 2s infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            50% { 
+                transform: scale(1.2) rotate(180deg);
+                opacity: 0.8;
+            }
+        }
+
+        .code-symbol {
+            color: rgba(255, 255, 255, 0.6);
+            font-family: 'Courier New', monospace;
+            font-size: 2rem;
+            margin: 0 1rem;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tech-item {
+            background: rgba(59, 130, 246, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            transition: all 0.3s;
+        }
+
+        .tech-item:hover {
+            background: rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .developer-name {
+                font-size: 2rem;
+            }
+            
+            .developer-title {
+                font-size: 1.125rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>🎯 Gestor de Tiempo Diario</h1>
+                <p id="headerSubtitle">0 de 6 actividades completadas</p>
+                <p style="font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 0.25rem;">
+                    Crafted by <span style="color: #3b82f6; font-weight: 600;">Miguel Rivas V.</span> ✨
+                </p>
+            </div>
+            <div class="header-buttons">
+                <button class="btn btn-secondary" onclick="abrirModalSincronizar()">
+                    🔄 Sincronizar
+                </button>
+                <button class="btn btn-secondary" onclick="abrirModalHistorial()">
+                    📊 Ver Historial
+                </button>
+                <button class="btn btn-primary" onclick="abrirModalAgregarActividad()">
+                    ➕ Nueva Actividad
+                </button>
+                <button class="btn btn-secondary" onclick="resetearTodo()">
+                    🔄 Resetear Día
+                </button>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span style="font-size: 32px;">⏰</span>
+                    <div class="stat-value" id="tiempoTotal">0:00:00</div>
+                </div>
+                <div class="stat-label">Tiempo Total del Día</div>
+            </div>
+
+            <div class="stat-card green">
+                <div class="stat-header">
+                    <span style="font-size: 32px;">✅</span>
+                    <div class="stat-value" id="actividadesCompletadas">0/6</div>
+                </div>
+                <div class="stat-label">Actividades Completadas</div>
+            </div>
+
+            <div class="stat-card purple">
+                <div class="stat-header">
+                    <span style="font-size: 32px;">📈</span>
+                    <div class="stat-value" id="porcentajeGeneral">0%</div>
+                </div>
+                <div class="stat-label">Progreso del Día</div>
+            </div>
+        </div>
+
+        <!-- Reloj y Fecha Actual -->
+        <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 1rem; padding: 1.5rem; margin-bottom: 2rem; backdrop-filter: blur(10px); text-align: center;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 2rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span style="font-size: 2.5rem;">📅</span>
+                    <div>
+                        <div id="diaActualTexto" style="font-size: 1.5rem; font-weight: 700; color: #3b82f6; margin-bottom: 0.25rem;">Jueves</div>
+                        <div id="fechaActual" style="font-size: 1rem; color: #9ca3af;">31 de Octubre, 2025</div>
+                    </div>
+                </div>
+                <div style="width: 2px; height: 60px; background: rgba(255, 255, 255, 0.2);"></div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span style="font-size: 2.5rem;">🕐</span>
+                    <div>
+                        <div id="horaActual" style="font-size: 2.5rem; font-weight: 700; color: #a855f7; font-variant-numeric: tabular-nums; letter-spacing: 0.05em;">00:00:00</div>
+                        <div id="periodoActual" style="font-size: 0.875rem; color: #9ca3af; margin-top: 0.25rem;">AM</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerta de Día Anterior (se muestra solo si hay problema) -->
+        <div id="alertaDiaAnterior" style="display: none; background: rgba(239, 68, 68, 0.15); border: 2px solid #ef4444; border-radius: 1rem; padding: 1.5rem; margin-bottom: 2rem; backdrop-filter: blur(10px);">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span style="font-size: 3rem;">⚠️</span>
+                <div style="flex: 1;">
+                    <h3 style="margin: 0 0 0.5rem 0; color: #fca5a5;">Datos del Día Anterior Detectados</h3>
+                    <p style="margin: 0; color: #9ca3af; font-size: 0.9rem;">
+                        Las actividades mostradas son del día anterior. El sistema debería haber reseteado automáticamente.
+                    </p>
+                </div>
+                <button class="btn btn-danger" onclick="forzarResetDia()" style="flex-shrink: 0;">
+                    🔄 Resetear Ahora
+                </button>
+            </div>
+        </div>
+
+        <!-- Actividades -->
+        <div id="actividadesContainer">
+            <!-- Se llenarán dinámicamente -->
+        </div>
+
+        <!-- Progreso Semanal -->
+        <div class="semana-card">
+            <div class="semana-header">
+                <h2>
+                    <span>📅</span>
+                    Progreso Semanal
+                </h2>
+                <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.875rem;" onclick="resetearSemana()">
+                    Resetear Semana
+                </button>
+            </div>
+            <div class="semana-grid" id="progresoSemanal">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Rachas -->
+        <div class="rachas-grid">
+            <div class="stat-card orange">
+                <div class="stat-header">
+                    <span style="font-size: 48px;">🔥</span>
+                    <div>
+                        <div class="stat-value" id="rachaActual">0</div>
+                        <div class="stat-label">Racha Actual (días)</div>
+                    </div>
+                    <span style="font-size: 3rem; margin-left: auto;" id="rachaEmoji"></span>
+                </div>
+            </div>
+
+            <div class="stat-card yellow">
+                <div class="stat-header">
+                    <span style="font-size: 48px;">🏆</span>
+                    <div>
+                        <div class="stat-value" id="mejorRacha">0</div>
+                        <div class="stat-label">Mejor Racha</div>
+                    </div>
+                    <span style="font-size: 3rem; margin-left: auto;" id="mejorRachaEmoji"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER ESPECTACULAR DEL DESARROLLADOR -->
+        <div class="developer-footer">
+            <div class="developer-content">
+                <div class="developer-badge">
+                    <span class="sparkle">✨</span> Desarrollado con Pasión <span class="sparkle">✨</span>
+                </div>
+                
+                <div class="developer-name">
+                    <span class="code-symbol">&lt;</span>
+                    <span class="highlight">Miguel Rivas V.</span>
+                    <span class="code-symbol">/&gt;</span>
+                </div>
+                
+                <div class="developer-title">
+                    Full Stack Developer & Creative Innovator 🚀
+                </div>
+
+                <div class="tech-stack">
+                    <div class="tech-item">💻 JavaScript</div>
+                    <div class="tech-item">🎨 CSS3</div>
+                    <div class="tech-item">⚡ HTML5</div>
+                    <div class="tech-item">🔥 React</div>
+                    <div class="tech-item">✨ UI/UX Design</div>
+                </div>
+
+                <div class="developer-quote">
+                    "La tecnología no es solo código, es arte en movimiento. Cada proyecto es una oportunidad para crear experiencias extraordinarias."
+                </div>
+
+                <div class="developer-icons">
+                    <div class="dev-icon" title="Instagram">📷</div>
+                    <div class="dev-icon" title="LinkedIn">💼</div>
+                    <div class="dev-icon" title="Portfolio">🌐</div>
+                    <div class="dev-icon" title="Email">📧</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Actividad -->
+    <div id="modalActividad" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitulo">Nueva Actividad</h3>
+                <button class="btn-close" onclick="cerrarModalActividad()">✕</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nombre de la Actividad</label>
+                <input type="text" id="inputNombre" class="form-input" placeholder="Ej: Estudiar React" oninput="actualizarPreview()">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Emoji (opcional)</label>
+                <input type="text" id="inputEmoji" class="form-input emoji-input" placeholder="📚" maxlength="2" oninput="actualizarPreview()">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Color</label>
+                <div class="color-grid" id="selectorColores"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Duración (horas): <span id="duracionLabel">3</span>h</label>
+                <div class="slider-container">
+                    <input type="range" id="inputDuracion" class="slider" min="1" max="8" step="0.5" value="3" oninput="actualizarDuracionLabel()">
+                    <div class="slider-labels">
+                        <span>1h</span>
+                        <span>8h</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" style="margin-bottom: 0.5rem;">Vista Previa:</label>
+                <div class="preview-card">
+                    <div class="preview-content">
+                        <span class="preview-emoji" id="previewEmoji">📝</span>
+                        <div style="flex: 1;">
+                            <div class="preview-name" id="previewNombre">Sin nombre</div>
+                            <div class="preview-duration"><span id="previewDuracion">3</span> horas de dedicación</div>
+                        </div>
+                        <div class="preview-color" id="previewColor"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button id="btnEliminar" class="btn btn-danger" onclick="eliminarActividadActual()" style="display: none;">
+                    🗑️ Eliminar
+                </button>
+                <button class="btn btn-primary" onclick="guardarActividad()" style="flex: 1;" id="btnGuardar">
+                    💾 Agregar Actividad
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Notas -->
+    <div id="modalNota" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📝 Documenta tu Sesión</h3>
+                <button class="btn-close" onclick="cerrarModalNota()">✕</button>
+            </div>
+
+            <div class="form-group">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <span style="font-size: 2rem;" id="notaEmoji"></span>
+                    <div>
+                        <div style="font-size: 1.125rem; font-weight: 600;" id="notaNombre"></div>
+                        <div style="color: #9ca3af; font-size: 0.875rem;">¿Qué lograste en esta sesión?</div>
+                    </div>
+                </div>
+
+                <textarea id="inputNota" class="form-input" rows="6" placeholder="Ej: Completé 3 lecciones de React, resolví 5 ejercicios del curso..."></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="guardarNota()" style="flex: 1;">
+                    💾 Guardar Nota
+                </button>
+                <button class="btn btn-secondary" onclick="cerrarModalNota()">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Notas -->
+    <div id="modalVerNotas" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3>📖 Historial de Notas</h3>
+                <button class="btn-close" onclick="cerrarModalVerNotas()">✕</button>
+            </div>
+
+            <div class="form-group">
+                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.05); border-radius: 0.75rem;">
+                    <span style="font-size: 2rem;" id="verNotasEmoji"></span>
+                    <div style="font-size: 1.125rem; font-weight: 600;" id="verNotasNombre"></div>
+                </div>
+
+                <div id="listaNotas" class="notas-lista" style="margin-top: 1rem;">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="cerrarModalVerNotas()" style="width: 100%;">
+                Cerrar
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Celebración -->
+    <div id="modalCelebracion" class="modal celebracion-modal">
+        <div class="modal-content">
+            <div class="celebracion-icon">🏆</div>
+            <div class="celebracion-title">¡HITO ALCANZADO!</div>
+            <div class="celebracion-dias" id="celebracionDias"></div>
+            <div class="celebracion-mensaje" id="celebracionMensaje"></div>
+            <button class="btn-celebracion" onclick="cerrarCelebracion()">
+                ¡SEGUIR ADELANTE! 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Historial -->
+    <div id="modalHistorial" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3>📊 Historial de Días Anteriores</h3>
+                <button class="btn-close" onclick="cerrarModalHistorial()">✕</button>
+            </div>
+            <div id="contenidoHistorial" style="max-height: 500px; overflow-y: auto;">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sincronización -->
+    <div id="modalSincronizar" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>🔄 Sincronizar Dispositivos</h3>
+                <button class="btn-close" onclick="cerrarModalSincronizar()">✕</button>
+            </div>
+            
+            <div style="padding: 1.5rem;">
+                <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.5rem;">
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">ℹ️ Información</div>
+                    <div style="font-size: 0.875rem; color: #9ca3af;">
+                        Los datos se guardan localmente en cada dispositivo. Usa estas opciones para sincronizar entre tu laptop y móvil.
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">📤 Exportar Datos</h4>
+                    <p style="font-size: 0.875rem; color: #9ca3af; margin-bottom: 1rem;">
+                        Copia estos datos y pégalos en otro dispositivo
+                    </p>
+                    <textarea id="datosExportar" readonly style="width: 100%; min-height: 150px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.5rem; padding: 1rem; color: white; font-family: monospace; font-size: 0.75rem;"></textarea>
+                    <button class="btn btn-primary" onclick="copiarDatos()" style="margin-top: 0.5rem; width: 100%;">
+                        📋 Copiar Datos
+                    </button>
+                </div>
+
+                <div>
+                    <h4 style="margin-bottom: 1rem;">📥 Importar Datos</h4>
+                    <p style="font-size: 0.875rem; color: #9ca3af; margin-bottom: 1rem;">
+                        Pega los datos del otro dispositivo aquí
+                    </p>
+                    <textarea id="datosImportar" placeholder="Pega aquí los datos copiados..." style="width: 100%; min-height: 150px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.5rem; padding: 1rem; color: white; font-family: monospace; font-size: 0.75rem;"></textarea>
+                    <button class="btn btn-primary" onclick="importarDatos()" style="margin-top: 0.5rem; width: 100%;">
+                        ⬇️ Importar y Sincronizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// Configuración inicial
+const TIEMPO_INACTIVIDAD = 5 * 60;
+const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+const coloresDisponibles = [
+    { nombre: "Azul", valor: "color-blue", class: "bg-blue-500" },
+    { nombre: "Rosa", valor: "color-pink", class: "bg-pink-500" },
+    { nombre: "Púrpura", valor: "color-purple", class: "bg-purple-500" },
+    { nombre: "Verde", valor: "color-green", class: "bg-green-500" },
+    { nombre: "Naranja", valor: "color-orange", class: "bg-orange-500" },
+    { nombre: "Índigo", valor: "color-indigo", class: "bg-indigo-500" },
+    { nombre: "Rojo", valor: "color-red", class: "bg-red-500" },
+    { nombre: "Amarillo", valor: "color-yellow", class: "bg-yellow-500" },
+    { nombre: "Cyan", valor: "color-cyan", class: "bg-cyan-500" },
+    { nombre: "Esmeralda", valor: "color-emerald", class: "bg-emerald-500" },
+    { nombre: "Fucsia", valor: "color-fuchsia", class: "bg-fuchsia-500" },
+    { nombre: "Lima", valor: "color-lime", class: "bg-lime-500" }
+];
+
+const frasesMotivacion = {
+    inicio: [
+        "¡Vamos! Este es tu momento de brillar ✨",
+        "Cada hora cuenta, ¡hagámoslo increíble! 🚀",
+        "Tu yo del futuro te agradecerá esto 💪",
+        "¡Enfoque absoluto activado! 🎯"
+    ],
+    medioTiempo: [
+        "¡Vas a la mitad! Sigue así, campeón 🔥",
+        "50% completado. ¡Imparable! 💪",
+        "Medio camino andado. ¡No pares ahora! 🌟"
+    ],
+    completado: [
+        "¡Misión cumplida! Siguiente nivel desbloqueado 🏆",
+        "¡Boom! Otra actividad dominada 💥",
+        "¡Imparable! Así se hace, crack 🌟"
+    ],
+    racha: {
+        7: "¡UNA SEMANA COMPLETA! Eres imparable 🔥",
+        14: "¡2 SEMANAS! Esto es disciplina real 💪",
+        30: "¡UN MES ENTERO! Eres una leyenda 🏆",
+        60: "¡60 DÍAS! Nivel maestro desbloqueado 👑",
+        100: "¡100 DÍAS! ERES UN TITÁN 🌟"
+    }
+};
+
+// Estado global
+let actividades = JSON.parse(localStorage.getItem('actividadesPersonalizadas')) || [
+    { id: 1, nombre: "Estudiar en la UTP", color: "color-blue", emoji: "📚", duracionHoras: 3 },
+    { id: 2, nombre: "Eternical (Flores limpiapipas)", color: "color-pink", emoji: "🌸", duracionHoras: 3 },
+    { id: 3, nombre: "Canal Clips de Kick", color: "color-purple", emoji: "🎬", duracionHoras: 3 },
+    { id: 4, nombre: "Canal Videos Educativos", color: "color-green", emoji: "🎓", duracionHoras: 3 },
+    { id: 5, nombre: "Proyecto Extra", color: "color-orange", emoji: "⚡", duracionHoras: 3 },
+    { id: 6, nombre: "Aprender IA", color: "color-indigo", emoji: "🤖", duracionHoras: 3 }
+];
+
+let estadoActividades = JSON.parse(localStorage.getItem('estadoActividades')) || actividades.map(act => ({
+    id: act.id,
+    tiempoTranscurrido: 0,
+    activa: false,
+    completada: false,
+    alertaMedioCamino: false,
+    ultimaVezTrabajada: null,
+    timestampInicio: null,
+    tiempoAcumuladoAntes: 0
+}));
+
+let progresoSemanal = JSON.parse(localStorage.getItem('progresoSemanal')) || 
+    diasSemana.reduce((acc, dia) => { acc[dia] = []; return acc; }, {});
+
+let notas = JSON.parse(localStorage.getItem('notasSesiones')) || {};
+
+let rachaData = JSON.parse(localStorage.getItem('rachaData')) || {
+    rachaActual: 0,
+    mejorRacha: 0,
+    ultimoDiaCompletado: null,
+    diasCompletados: []
+};
+
+let historialDias = JSON.parse(localStorage.getItem('historialDias')) || [];
+let ultimaFechaAcceso = localStorage.getItem('ultimaFechaAcceso') || new Date().toDateString();
+
+let actividadEditando = null;
+let actividadNotaActual = null;
+let actividadVerNotasActual = null;
+let colorSeleccionado = 'color-blue';
+
+// Obtener día actual
+const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const hoy = dias[new Date().getDay()];
+const diaActual = diasSemana.includes(hoy) ? hoy : 'Lunes';
+
+// Verificar si es un nuevo día
+function verificarNuevoDia() {
+    const fechaHoy = new Date().toDateString();
+    
+    console.log('🗓️ Verificando nuevo día...');
+    console.log('📅 Fecha actual:', fechaHoy);
+    console.log('📅 Última fecha acceso:', ultimaFechaAcceso);
+    
+    if (ultimaFechaAcceso !== fechaHoy) {
+        console.log('🆕 ¡NUEVO DÍA DETECTADO!');
+        
+        // Es un nuevo día - guardar estadísticas del día anterior
+        const estadisticasDiaAnterior = {
+            fecha: ultimaFechaAcceso,
+            actividades: estadoActividades.map(act => {
+                const actividad = actividades.find(a => a.id === act.id);
+                return {
+                    nombre: actividad ? actividad.nombre : 'Desconocida',
+                    emoji: actividad ? actividad.emoji : '❓',
+                    tiempoTranscurrido: act.tiempoTranscurrido,
+                    completada: act.completada,
+                    porcentaje: actividad ? Math.min((act.tiempoTranscurrido / (actividad.duracionHoras * 60 * 60)) * 100, 100) : 0
+                };
+            }),
+            tiempoTotal: estadoActividades.reduce((sum, act) => sum + act.tiempoTranscurrido, 0),
+            actividadesCompletadas: estadoActividades.filter(act => act.completada).length,
+            totalActividades: actividades.length,
+            notas: { ...notas }
+        };
+        
+        console.log('💾 Guardando estadísticas del día anterior:', estadisticasDiaAnterior);
+        
+        // Agregar al historial (mantener últimos 30 días)
+        historialDias.unshift(estadisticasDiaAnterior);
+        if (historialDias.length > 30) {
+            historialDias = historialDias.slice(0, 30);
+        }
+        
+        localStorage.setItem('historialDias', JSON.stringify(historialDias));
+        
+        console.log('🔄 Reseteando actividades para el nuevo día...');
+        
+        // Resetear el estado de las actividades para el nuevo día
+        estadoActividades = actividades.map(act => ({
+            id: act.id,
+            tiempoTranscurrido: 0,
+            activa: false,
+            completada: false,
+            alertaMedioCamino: false,
+            ultimaVezTrabajada: null,
+            timestampInicio: null,
+            tiempoAcumuladoAntes: 0
+        }));
+        
+        // Limpiar notas del día anterior
+        notas = {};
+        
+        // Actualizar la fecha de último acceso
+        ultimaFechaAcceso = fechaHoy;
+        localStorage.setItem('ultimaFechaAcceso', fechaHoy);
+        
+        // Guardar todo
+        guardarDatos();
+        
+        console.log('✅ Nuevo día configurado correctamente');
+        console.log('📊 Estado de actividades reseteado:', estadoActividades.length, 'actividades');
+        
+        // Mostrar notificación al usuario
+        if (Notification.permission === 'granted') {
+            new Notification('🌅 ¡Nuevo Día!', { 
+                body: 'Las actividades se han reseteado. ¡Comienza con energía!',
+                icon: '🚀'
+            });
+        }
+    } else {
+        console.log('✅ Mismo día - No se requiere reset');
+    }
+}
+
+// Ejecutar verificación al cargar
+verificarNuevoDia();
+
+// IMPORTANTE: Verificar cada vez que la página se vuelve visible
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        console.log('📱 Página visible - Verificando si cambió el día...');
+        verificarNuevoDia();
+    }
+});
+
+// También verificar cuando la ventana obtiene el foco
+window.addEventListener('focus', () => {
+    verificarNuevoDia();
+});
+
+// Funciones de guardado
+function guardarDatos() {
+    try {
+        // Validar que los datos sean válidos antes de guardar
+        if (!Array.isArray(actividades) || !Array.isArray(estadoActividades)) {
+            console.error('❌ Datos inválidos, no se guardarán');
+            return false;
+        }
+        
+        localStorage.setItem('actividadesPersonalizadas', JSON.stringify(actividades));
+        localStorage.setItem('estadoActividades', JSON.stringify(estadoActividades));
+        localStorage.setItem('progresoSemanal', JSON.stringify(progresoSemanal));
+        localStorage.setItem('notasSesiones', JSON.stringify(notas));
+        localStorage.setItem('rachaData', JSON.stringify(rachaData));
+        return true;
+    } catch (error) {
+        console.error('❌ Error al guardar datos en localStorage:', error);
+        
+        // Intentar limpiar localStorage si está lleno
+        if (error.name === 'QuotaExceededError') {
+            console.log('⚠️ LocalStorage lleno, considera exportar tus datos');
+            alert('⚠️ Espacio de almacenamiento casi lleno. Exporta tus datos pronto.');
+        }
+        return false;
+    }
+}
+
+// Formatear tiempo
+function formatearTiempo(segundos) {
+    const horas = Math.floor(segundos / 3600);
+    const minutos = Math.floor((segundos % 3600) / 60);
+    const segs = segundos % 60;
+    return `${horas}:${minutos.toString().padStart(2, '0')}:${segs.toString().padStart(2, '0')}`;
+}
+
+// Formatear tiempo con milésimas (para el tiempo total del día)
+function formatearTiempoConMilesimas(milisegundos) {
+    const totalSegundos = milisegundos / 1000;
+    const horas = Math.floor(totalSegundos / 3600);
+    const minutos = Math.floor((totalSegundos % 3600) / 60);
+    const segundos = Math.floor(totalSegundos % 60);
+    const milesimas = Math.floor((milisegundos % 1000) / 10); // Centésimas (00-99)
+    return `${horas}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}.${milesimas.toString().padStart(2, '0')}`;
+}
+
+// Calcular porcentaje
+function calcularPorcentaje(actividadId) {
+    const estado = estadoActividades.find(act => act.id === actividadId);
+    const actividad = actividades.find(act => act.id === actividadId);
+    if (!estado || !actividad) return 0;
+    const duracionSegundos = actividad.duracionHoras * 60 * 60;
+    return Math.min((estado.tiempoTranscurrido / duracionSegundos) * 100, 100);
+}
+
+// Iniciar actividad
+function iniciarActividad(id) {
+    console.log('🎯 INICIANDO ACTIVIDAD:', id);
+    
+    try {
+        const frase = frasesMotivacion.inicio[Math.floor(Math.random() * frasesMotivacion.inicio.length)];
+        const actividad = actividades.find(a => a.id === id);
+        
+        if (!actividad) {
+            console.error('❌ Actividad no encontrada:', id);
+            return;
+        }
+        
+        console.log('✅ Actividad encontrada:', actividad.nombre);
+        
+        if (Notification.permission === 'granted') {
+            new Notification(`Iniciando: ${actividad.nombre}`, { body: frase, icon: '🚀' });
+        }
+
+        const ahora = Date.now();
+        console.log('⏰ Timestamp de inicio:', ahora);
+        
+        estadoActividades = estadoActividades.map(act => 
+            act.id === id 
+                ? { 
+                    ...act, 
+                    activa: true, 
+                    ultimaVezTrabajada: new Date().toISOString(),
+                    timestampInicio: ahora,
+                    tiempoAcumuladoAntes: act.tiempoTranscurrido || 0
+                }
+                : { ...act, activa: false }
+        );
+        
+        console.log('💾 Guardando datos...');
+        guardarDatos();
+        
+        console.log('🎨 Renderizando...');
+        renderizar();
+        
+        console.log('✅ Actividad iniciada correctamente');
+    } catch (error) {
+        console.error('❌ ERROR AL INICIAR ACTIVIDAD:', error);
+        alert('Error al iniciar la actividad. Revisa la consola.');
+    }
+}
+
+// Pausar actividad
+function pausarActividad(id) {
+    const ahora = Date.now();
+    estadoActividades = estadoActividades.map(act => {
+        if (act.id === id && act.activa) {
+            const tiempoTranscurridoEnEstaSesion = act.timestampInicio 
+                ? Math.floor((ahora - act.timestampInicio) / 1000)
+                : 0;
+            const tiempoTotal = (act.tiempoAcumuladoAntes || 0) + tiempoTranscurridoEnEstaSesion;
+            console.log('⏸️ Pausando actividad:', id, 'Tiempo total:', tiempoTotal);
+            return { 
+                ...act, 
+                activa: false, 
+                tiempoTranscurrido: tiempoTotal,
+                timestampInicio: null,
+                tiempoAcumuladoAntes: tiempoTotal
+            };
+        }
+        return act;
+    });
+    guardarDatos();
+    renderizar();
+}
+
+// Resetear actividad
+function resetearActividad(id) {
+    estadoActividades = estadoActividades.map(act => 
+        act.id === id 
+            ? { 
+                ...act, 
+                tiempoTranscurrido: 0, 
+                activa: false, 
+                completada: false, 
+                alertaMedioCamino: false,
+                timestampInicio: null,
+                tiempoAcumuladoAntes: 0
+            } 
+            : act
+    );
+    guardarDatos();
+    renderizar();
+}
+
+// Resetear todo
+function resetearTodo() {
+    if (confirm('¿Estás seguro de resetear TODO el progreso del día?')) {
+        // Resetear todas las actividades
+        estadoActividades = estadoActividades.map(act => ({
+            id: act.id,
+            tiempoTranscurrido: 0,
+            activa: false,
+            completada: false,
+            alertaMedioCamino: false,
+            timestampInicio: null,
+            tiempoAcumuladoAntes: 0,
+            ultimaVezTrabajada: null
+        }));
+        
+        // Limpiar progreso del día actual
+        if (progresoSemanal[diaActual]) {
+            progresoSemanal[diaActual] = [];
+        }
+        
+        // Actualizar fecha de acceso
+        ultimaFechaAcceso = new Date().toDateString();
+        localStorage.setItem('ultimaFechaAcceso', ultimaFechaAcceso);
+        
+        // Guardar y renderizar
+        guardarDatos();
+        renderizar();
+        
+        // Forzar actualización del tiempo total
+        document.getElementById('tiempoTotal').textContent = '0:00:00.00';
+        
+        // Ocultar alerta si estaba visible
+        document.getElementById('alertaDiaAnterior').style.display = 'none';
+        
+        console.log('✅ Día reseteado completamente');
+    }
+}
+
+// Forzar reset del día (para cuando falla la detección automática)
+function forzarResetDia() {
+    console.log('🔄 Reset manual forzado por el usuario');
+    
+    // Actualizar la fecha inmediatamente
+    ultimaFechaAcceso = new Date().toDateString();
+    localStorage.setItem('ultimaFechaAcceso', ultimaFechaAcceso);
+    
+    // Resetear todo
+    estadoActividades = estadoActividades.map(act => ({
+        id: act.id,
+        tiempoTranscurrido: 0,
+        activa: false,
+        completada: false,
+        alertaMedioCamino: false,
+        timestampInicio: null,
+        tiempoAcumuladoAntes: 0,
+        ultimaVezTrabajada: null
+    }));
+    
+    // Limpiar progreso del día
+    if (progresoSemanal[diaActual]) {
+        progresoSemanal[diaActual] = [];
+    }
+    
+    // Limpiar notas
+    notas = {};
+    
+    // Guardar
+    guardarDatos();
+    
+    // Ocultar alerta
+    document.getElementById('alertaDiaAnterior').style.display = 'none';
+    
+    // Renderizar
+    renderizar();
+    
+    // Notificar
+    console.log('✅ Reset forzado completado');
+    alert('✅ Día reseteado correctamente. ¡Comienza de nuevo!');
+}
+
+// Verificar si hay datos del día anterior y mostrar alerta
+function verificarDatosAntiguos() {
+    const fechaHoy = new Date().toDateString();
+    const fechaGuardada = localStorage.getItem('ultimaFechaAcceso');
+    
+    console.log('🔍 Verificando datos antiguos...');
+    console.log('📅 Fecha hoy:', fechaHoy);
+    console.log('📅 Fecha guardada:', fechaGuardada);
+    
+    if (fechaGuardada && fechaGuardada !== fechaHoy) {
+        // Hay datos de un día anterior
+        const hayActividadesCompletadas = estadoActividades.some(act => act.completada || act.tiempoTranscurrido > 0);
+        
+        if (hayActividadesCompletadas) {
+            console.log('⚠️ ALERTA: Hay datos del día anterior que no se resetearon');
+            document.getElementById('alertaDiaAnterior').style.display = 'block';
+        }
+    } else {
+        document.getElementById('alertaDiaAnterior').style.display = 'none';
+    }
+}
+
+// Resetear semana
+function resetearSemana() {
+    if (confirm('¿Estás seguro de resetear TODO el progreso semanal?')) {
+        progresoSemanal = diasSemana.reduce((acc, dia) => { acc[dia] = []; return acc; }, {});
+        guardarDatos();
+        renderizar();
+    }
+}
+
+// Modal actividad
+function abrirModalAgregarActividad() {
+    actividadEditando = null;
+    document.getElementById('modalTitulo').textContent = 'Nueva Actividad';
+    document.getElementById('inputNombre').value = '';
+    document.getElementById('inputEmoji').value = '📝';
+    document.getElementById('inputDuracion').value = 3;
+    colorSeleccionado = 'color-blue';
+    document.getElementById('btnEliminar').style.display = 'none';
+    document.getElementById('btnGuardar').innerHTML = '💾 Agregar Actividad';
+    actualizarPreview();
+    renderizarSelectorColores();
+    document.getElementById('modalActividad').classList.add('active');
+}
+
+function abrirModalEditarActividad(id) {
+    const actividad = actividades.find(a => a.id === id);
+    if (!actividad) return;
+
+    actividadEditando = id;
+    document.getElementById('modalTitulo').textContent = 'Editar Actividad';
+    document.getElementById('inputNombre').value = actividad.nombre;
+    document.getElementById('inputEmoji').value = actividad.emoji;
+    document.getElementById('inputDuracion').value = actividad.duracionHoras;
+    colorSeleccionado = actividad.color;
+    document.getElementById('btnEliminar').style.display = 'flex';
+    document.getElementById('btnGuardar').innerHTML = '💾 Guardar Cambios';
+    actualizarPreview();
+    renderizarSelectorColores();
+    document.getElementById('modalActividad').classList.add('active');
+}
+
+function cerrarModalActividad() {
+    document.getElementById('modalActividad').classList.remove('active');
+}
+
+function guardarActividad() {
+    const nombre = document.getElementById('inputNombre').value.trim();
+    if (!nombre) {
+        alert('Por favor ingresa un nombre para la actividad');
+        return;
+    }
+
+    const emoji = document.getElementById('inputEmoji').value || '📝';
+    const duracionHoras = parseFloat(document.getElementById('inputDuracion').value);
+
+    if (actividadEditando) {
+        actividades = actividades.map(act => 
+            act.id === actividadEditando 
+                ? { ...act, nombre, emoji, color: colorSeleccionado, duracionHoras }
+                : act
+        );
+    } else {
+        const nuevoId = Math.max(...actividades.map(a => a.id), 0) + 1;
+        actividades.push({ id: nuevoId, nombre, emoji, color: colorSeleccionado, duracionHoras });
+        estadoActividades.push({
+            id: nuevoId,
+            tiempoTranscurrido: 0,
+            activa: false,
+            completada: false,
+            alertaMedioCamino: false,
+            ultimaVezTrabajada: null
+        });
+    }
+
+    guardarDatos();
+    cerrarModalActividad();
+    renderizar();
+}
+
+function eliminarActividadActual() {
+    if (confirm('¿Estás seguro de eliminar esta actividad? Se perderá todo su historial.')) {
+        actividades = actividades.filter(act => act.id !== actividadEditando);
+        estadoActividades = estadoActividades.filter(est => est.id !== actividadEditando);
+        guardarDatos();
+        cerrarModalActividad();
+        renderizar();
+    }
+}
+
+function seleccionarColor(color) {
+    colorSeleccionado = color;
+    renderizarSelectorColores();
+    actualizarPreview();
+}
+
+function renderizarSelectorColores() {
+    const container = document.getElementById('selectorColores');
+    container.innerHTML = coloresDisponibles.map(color => `
+        <div 
+            onclick="seleccionarColor('${color.valor}')" 
+            class="color-option ${color.valor} ${colorSeleccionado === color.valor ? 'selected' : ''}"
+            title="${color.nombre}">
+        </div>
+    `).join('');
+}
+
+function actualizarDuracionLabel() {
+    const duracion = document.getElementById('inputDuracion').value;
+    document.getElementById('duracionLabel').textContent = duracion;
+    actualizarPreview();
+}
+
+function actualizarPreview() {
+    const nombre = document.getElementById('inputNombre').value || 'Sin nombre';
+    const emoji = document.getElementById('inputEmoji').value || '📝';
+    const duracion = document.getElementById('inputDuracion').value;
+
+    document.getElementById('previewNombre').textContent = nombre;
+    document.getElementById('previewEmoji').textContent = emoji;
+    document.getElementById('previewDuracion').textContent = duracion;
+    document.getElementById('previewColor').className = `preview-color ${colorSeleccionado}`;
+}
+
+// Modal notas
+function abrirModalNota(id) {
+    actividadNotaActual = id;
+    const actividad = actividades.find(a => a.id === id);
+    document.getElementById('notaEmoji').textContent = actividad.emoji;
+    document.getElementById('notaNombre').textContent = actividad.nombre;
+    document.getElementById('inputNota').value = '';
+    document.getElementById('modalNota').classList.add('active');
+}
+
+function cerrarModalNota() {
+    document.getElementById('modalNota').classList.remove('active');
+}
+
+function guardarNota() {
+    const texto = document.getElementById('inputNota').value.trim();
+    if (!texto) return;
+
+    const fechaHora = new Date().toLocaleString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    if (!notas[actividadNotaActual]) {
+        notas[actividadNotaActual] = [];
+    }
+
+    notas[actividadNotaActual].push({ fecha: fechaHora, texto });
+    guardarDatos();
+    cerrarModalNota();
+    renderizar();
+}
+
+function abrirModalVerNotas(id) {
+    actividadVerNotasActual = id;
+    const actividad = actividades.find(a => a.id === id);
+    document.getElementById('verNotasEmoji').textContent = actividad.emoji;
+    document.getElementById('verNotasNombre').textContent = actividad.nombre;
+
+    const listaNotas = document.getElementById('listaNotas');
+    const notasActividad = (notas[id] || []).slice().reverse();
+
+    if (notasActividad.length === 0) {
+        listaNotas.innerHTML = '<div class="empty-state">Aún no hay notas para esta actividad</div>';
+    } else {
+        listaNotas.innerHTML = notasActividad.map(nota => `
+            <div class="nota-item">
+                <div class="nota-header">
+                    <div class="nota-icon">📝</div>
+                    <div style="flex: 1;">
+                        <div class="nota-fecha">${nota.fecha}</div>
+                        <div class="nota-texto">${nota.texto}</div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    document.getElementById('modalVerNotas').classList.add('active');
+}
+
+function cerrarModalVerNotas() {
+    document.getElementById('modalVerNotas').classList.remove('active');
+}
+
+// Celebración
+function mostrarCelebracion(dias) {
+    document.getElementById('celebracionDias').textContent = `${dias} DÍAS`;
+    document.getElementById('celebracionMensaje').textContent = frasesMotivacion.racha[dias];
+    document.getElementById('modalCelebracion').classList.add('active');
+}
+
+function cerrarCelebracion() {
+    document.getElementById('modalCelebracion').classList.remove('active');
+}
+
+// Modal Historial
+function abrirModalHistorial() {
+    renderizarHistorial();
+    document.getElementById('modalHistorial').classList.add('active');
+}
+
+function cerrarModalHistorial() {
+    document.getElementById('modalHistorial').classList.remove('active');
+}
+
+function renderizarHistorial() {
+    const contenedor = document.getElementById('contenidoHistorial');
+    
+    if (historialDias.length === 0) {
+        contenedor.innerHTML = `
+            <div style="text-align: center; padding: 3rem; color: #9ca3af;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">📅</div>
+                <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Sin historial todavía</div>
+                <div>Completa tu primer día para ver las estadísticas aquí</div>
+            </div>
+        `;
+        return;
+    }
+    
+    contenedor.innerHTML = historialDias.map((dia, index) => {
+        const fecha = new Date(dia.fecha);
+        const fechaFormateada = fecha.toLocaleDateString('es-ES', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        
+        const porcentajeGeneral = dia.totalActividades > 0 
+            ? ((dia.actividadesCompletadas / dia.totalActividades) * 100).toFixed(1) 
+            : 0;
+        
+        return `
+            <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div>
+                        <div style="font-size: 1.25rem; font-weight: 600; text-transform: capitalize;">${fechaFormateada}</div>
+                        <div style="color: #9ca3af; margin-top: 0.25rem;">Hace ${index === 0 ? 'ayer' : index + ' días'}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #3b82f6;">${porcentajeGeneral}%</div>
+                        <div style="color: #9ca3af; font-size: 0.875rem;">${dia.actividadesCompletadas}/${dia.totalActividades} completadas</div>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(0, 0, 0, 0.2); border-radius: 0.5rem; padding: 1rem;">
+                    <div style="font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        ⏰ Tiempo Total: <span style="color: #3b82f6;">${formatearTiempo(dia.tiempoTotal)}</span>
+                    </div>
+                    
+                    <div style="display: grid; gap: 0.5rem;">
+                        ${dia.actividades.map(act => {
+                            const porcentaje = act.porcentaje.toFixed(1);
+                            return `
+                                <div style="display: flex; align-items: center; gap: 0.75rem; background: rgba(255, 255, 255, 0.05); padding: 0.75rem; border-radius: 0.5rem;">
+                                    <span style="font-size: 1.5rem;">${act.emoji}</span>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 500;">${act.nombre}</div>
+                                        <div style="font-size: 0.875rem; color: #9ca3af;">${formatearTiempo(act.tiempoTranscurrido)}</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-weight: 600; ${act.completada ? 'color: #22c55e;' : ''}">${porcentaje}%</div>
+                                        ${act.completada ? '<div style="font-size: 0.75rem; color: #22c55e;">✓ Completada</div>' : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Modal Sincronización
+function abrirModalSincronizar() {
+    generarDatosExportar();
+    document.getElementById('modalSincronizar').classList.add('active');
+}
+
+function cerrarModalSincronizar() {
+    document.getElementById('modalSincronizar').classList.remove('active');
+}
+
+function generarDatosExportar() {
+    const datosCompletos = {
+        version: '1.0',
+        fecha: new Date().toISOString(),
+        actividades: actividades,
+        estadoActividades: estadoActividades,
+        progresoSemanal: progresoSemanal,
+        notas: notas,
+        rachaData: rachaData,
+        historialDias: historialDias,
+        ultimaFechaAcceso: ultimaFechaAcceso
+    };
+    
+    const jsonString = JSON.stringify(datosCompletos, null, 2);
+    document.getElementById('datosExportar').value = jsonString;
+}
+
+function copiarDatos() {
+    const textarea = document.getElementById('datosExportar');
+    textarea.select();
+    textarea.setSelectionRange(0, 99999); // Para móviles
+    
+    try {
+        document.execCommand('copy');
+        alert('✅ Datos copiados! Ahora pégalos en tu otro dispositivo.');
+    } catch (err) {
+        // Fallback para móviles modernos
+        navigator.clipboard.writeText(textarea.value).then(() => {
+            alert('✅ Datos copiados! Ahora pégalos en tu otro dispositivo.');
+        }).catch(() => {
+            alert('⚠️ No se pudo copiar automáticamente. Por favor, selecciona y copia manualmente.');
+        });
+    }
+}
+
+function importarDatos() {
+    const datosImportados = document.getElementById('datosImportar').value.trim();
+    
+    if (!datosImportados) {
+        alert('⚠️ Por favor, pega los datos primero');
+        return;
+    }
+    
+    try {
+        const datos = JSON.parse(datosImportados);
+        
+        // Validar que tenga la estructura correcta
+        if (!datos.version || !datos.actividades || !datos.estadoActividades) {
+            throw new Error('Formato de datos inválido');
+        }
+        
+        // Confirmar antes de sobrescribir
+        if (!confirm('⚠️ ATENCIÓN: Esto sobrescribirá todos tus datos actuales. ¿Continuar?')) {
+            return;
+        }
+        
+        // Importar todos los datos
+        actividades = datos.actividades;
+        estadoActividades = datos.estadoActividades;
+        progresoSemanal = datos.progresoSemanal || {};
+        notas = datos.notas || {};
+        rachaData = datos.rachaData || { rachaActual: 0, mejorRacha: 0, ultimoDiaCompletado: null, diasCompletados: [] };
+        historialDias = datos.historialDias || [];
+        ultimaFechaAcceso = datos.ultimaFechaAcceso || new Date().toDateString();
+        
+        // Guardar todo
+        guardarDatos();
+        localStorage.setItem('historialDias', JSON.stringify(historialDias));
+        localStorage.setItem('ultimaFechaAcceso', ultimaFechaAcceso);
+        
+        // Renderizar
+        renderizar();
+        
+        alert('✅ Datos importados correctamente! Tu dispositivo está sincronizado.');
+        cerrarModalSincronizar();
+        
+    } catch (error) {
+        console.error('Error al importar:', error);
+        alert('❌ Error al importar los datos. Verifica que hayas copiado correctamente.');
+    }
+}
+
+// Verificar racha
+function verificarYActualizarRacha() {
+    const hoy = new Date().toDateString();
+    const todasCompletadas = estadoActividades.every(act => act.completada);
+    
+    if (todasCompletadas && !rachaData.diasCompletados.includes(hoy)) {
+        const ayer = new Date(Date.now() - 24 * 60 * 60 * 1000).toDateString();
+        const nuevaRacha = rachaData.diasCompletados.includes(ayer) || rachaData.rachaActual === 0
+            ? rachaData.rachaActual + 1
+            : 1;
+        
+        const nuevaMejorRacha = Math.max(nuevaRacha, rachaData.mejorRacha);
+        
+        rachaData = {
+            rachaActual: nuevaRacha,
+            mejorRacha: nuevaMejorRacha,
+            ultimoDiaCompletado: hoy,
+            diasCompletados: [...rachaData.diasCompletados, hoy]
+        };
+
+        guardarDatos();
+
+        if ([7, 14, 30, 60, 100].includes(nuevaRacha)) {
+            mostrarCelebracion(nuevaRacha);
+        }
+    }
+}
+
+// Renderizar todo
+function renderizar() {
+    // Estadísticas
+    const actividadesCompletadas = estadoActividades.filter(act => act.completada).length;
+    const tiempoTotalTranscurrido = estadoActividades.reduce((sum, act) => sum + act.tiempoTranscurrido, 0);
+    const tiempoTotalPlaneado = actividades.reduce((sum, act) => sum + (act.duracionHoras * 60 * 60), 0);
+    const porcentajeGeneral = tiempoTotalPlaneado > 0 ? (tiempoTotalTranscurrido / tiempoTotalPlaneado) * 100 : 0;
+
+    document.getElementById('headerSubtitle').textContent = `${actividadesCompletadas} de ${actividades.length} actividades completadas`;
+    // El tiempo total se actualiza en el intervalo rápido con milésimas
+    document.getElementById('actividadesCompletadas').textContent = `${actividadesCompletadas}/${actividades.length}`;
+    document.getElementById('porcentajeGeneral').textContent = `${porcentajeGeneral.toFixed(2)}%`;
+
+    // Rachas
+    document.getElementById('rachaActual').textContent = rachaData.rachaActual;
+    document.getElementById('mejorRacha').textContent = rachaData.mejorRacha;
+    document.getElementById('rachaEmoji').textContent = rachaData.rachaActual >= 3 ? '🔥' : '';
+    document.getElementById('mejorRachaEmoji').textContent = rachaData.mejorRacha >= 7 ? '👑' : '';
+
+    // Actividades
+    const container = document.getElementById('actividadesContainer');
+    container.innerHTML = actividades.map(actividad => {
+        const estado = estadoActividades.find(act => act.id === actividad.id);
+        if (!estado) return '';
+        
+        const porcentaje = calcularPorcentaje(actividad.id);
+        const claseActividad = estado.completada ? 'completada' : estado.activa ? 'activa' : '';
+
+        return `
+            <div class="actividad-card ${claseActividad}">
+                <div class="actividad-content">
+                    <div class="actividad-info">
+                        <div class="actividad-emoji ${actividad.color}">
+                            ${actividad.emoji}
+                        </div>
+                        <div class="actividad-details">
+                            <div class="actividad-header">
+                                <div class="actividad-nombre">${actividad.nombre}</div>
+                                <span class="actividad-duracion">(${actividad.duracionHoras} hrs)</span>
+                                ${estado.completada ? '<div class="badge-completada">✅ Completada</div>' : ''}
+                            </div>
+                            <div class="actividad-progreso">
+                                <div class="progress-container">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill ${actividad.color}" style="width: ${porcentaje}%"></div>
+                                    </div>
+                                    <div class="progress-text">${porcentaje.toFixed(2)}% completado</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="actividad-buttons">
+                        <div class="tiempo-display" style="margin-right: 2rem; font-size: 1.75rem;">
+                            ${formatearTiempo(estado.tiempoTranscurrido)}
+                        </div>
+                        ${!estado.activa && !estado.completada ? `
+                            <button class="btn-icon btn-play" onclick="iniciarActividad(${actividad.id})" title="Iniciar">
+                                ▶️
+                            </button>
+                        ` : ''}
+                        ${estado.activa ? `
+                            <button class="btn-icon btn-pause" onclick="pausarActividad(${actividad.id})" title="Pausar">
+                                ⏸️
+                            </button>
+                        ` : ''}
+                        <button class="btn-icon btn-reset" onclick="resetearActividad(${actividad.id})" title="Resetear">
+                            🕐
+                        </button>
+                        <button class="btn-icon btn-note" onclick="abrirModalNota(${actividad.id})" title="Agregar nota">
+                            📝
+                        </button>
+                        ${notas[actividad.id] && notas[actividad.id].length > 0 ? `
+                            <button class="btn-icon btn-view" onclick="abrirModalVerNotas(${actividad.id})" title="Ver notas">
+                                📖
+                                <span class="badge-count">${notas[actividad.id].length}</span>
+                            </button>
+                        ` : ''}
+                        <button class="btn-icon btn-edit" onclick="abrirModalEditarActividad(${actividad.id})" title="Editar">
+                            ⚙️
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Progreso semanal
+    const progresoContainer = document.getElementById('progresoSemanal');
+    progresoContainer.innerHTML = diasSemana.map(dia => {
+        const completadasHoy = progresoSemanal[dia].length;
+        const porcentajeDia = (completadasHoy / actividades.length) * 100;
+        const esDiaActual = dia === diaActual;
+        
+        return `
+            <div class="dia-card ${esDiaActual ? 'hoy' : ''}">
+                <div class="dia-nombre">${dia}</div>
+                <div class="dia-count">${completadasHoy}/${actividades.length}</div>
+                <div class="progress-bar" style="margin: 0.5rem 0;">
+                    <div class="progress-fill color-blue" style="width: ${porcentajeDia}%"></div>
+                </div>
+                ${esDiaActual ? '<div class="dia-badge">HOY</div>' : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+// Temporizador con sistema de timestamps para móviles (MEJORADO)
+let intervaloPrincipal = null;
+let ultimaActualizacion = Date.now();
+
+// Función de actualización del temporizador
+function actualizarTemporizador() {
+    try {
+        let cambios = false;
+        let hayActividadActiva = false;
+        const ahora = Date.now();
+        
+        // Detectar si pasó mucho tiempo (más de 5 segundos) - posible pausa del navegador
+        const tiempoDesdeUltimaActualizacion = (ahora - ultimaActualizacion) / 1000;
+        if (tiempoDesdeUltimaActualizacion > 5) {
+            console.log('⚠️ Detectada pausa del navegador. Tiempo transcurrido:', tiempoDesdeUltimaActualizacion.toFixed(0), 'segundos');
+        }
+        ultimaActualizacion = ahora;
+        
+        estadoActividades = estadoActividades.map(act => {
+            if (act.activa && !act.completada) {
+                hayActividadActiva = true;
+                const actividad = actividades.find(a => a.id === act.id);
+                
+                if (!actividad) {
+                    console.error('❌ Actividad no encontrada en array:', act.id);
+                    return act;
+                }
+                
+                const duracionSegundos = actividad.duracionHoras * 60 * 60;
+                
+                // Calcular tiempo basándose en timestamp real
+                const tiempoTranscurridoEnEstaSesion = act.timestampInicio 
+                    ? Math.floor((ahora - act.timestampInicio) / 1000)
+                    : 0;
+                const nuevoTiempo = (act.tiempoAcumuladoAntes || 0) + tiempoTranscurridoEnEstaSesion;
+                
+                // Alerta de medio camino
+                const medioCamino = duracionSegundos / 2;
+                if (nuevoTiempo >= medioCamino && nuevoTiempo < medioCamino + 2 && !act.alertaMedioCamino) {
+                    const frase = frasesMotivacion.medioTiempo[Math.floor(Math.random() * frasesMotivacion.medioTiempo.length)];
+                    if (Notification.permission === 'granted') {
+                        new Notification('¡Medio Camino! 🔥', { body: frase, icon: '🎯' });
+                    }
+                    cambios = true;
+                    return { ...act, tiempoTranscurrido: nuevoTiempo, alertaMedioCamino: true };
+                }
+                
+                // Actividad completada
+                if (nuevoTiempo >= duracionSegundos) {
+                    const frase = frasesMotivacion.completado[Math.floor(Math.random() * frasesMotivacion.completado.length)];
+                    if (Notification.permission === 'granted') {
+                        new Notification(`¡${actividad.nombre} Completada! 🎉`, { body: frase, icon: '🏆' });
+                    }
+                    
+                    if (!progresoSemanal[diaActual].includes(act.id)) {
+                        progresoSemanal[diaActual].push(act.id);
+                    }
+
+                    verificarYActualizarRacha();
+                    cambios = true;
+                    
+                    return { 
+                        ...act, 
+                        tiempoTranscurrido: duracionSegundos, 
+                        activa: false, 
+                        completada: true,
+                        ultimaVezTrabajada: new Date().toISOString(),
+                        timestampInicio: null
+                    };
+                }
+                
+                cambios = true;
+                return { ...act, tiempoTranscurrido: nuevoTiempo };
+            }
+            return act;
+        });
+
+        // Siempre renderizar si hay una actividad activa
+        if (cambios || hayActividadActiva) {
+            if (cambios) {
+                try {
+                    guardarDatos();
+                } catch (error) {
+                    console.error('❌ Error al guardar datos:', error);
+                }
+            }
+            renderizar();
+        }
+    } catch (error) {
+        console.error('❌ Error en actualizarTemporizador:', error);
+    }
+}
+
+// Iniciar el intervalo
+intervaloPrincipal = setInterval(actualizarTemporizador, 1000);
+
+// Manejar visibilidad de la página (MEJORADO para móviles)
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        console.log('📱 Página visible de nuevo, forzando actualización completa...');
+        
+        // Reiniciar el contador de última actualización
+        ultimaActualizacion = Date.now();
+        
+        // Forzar actualización inmediata de todas las actividades activas
+        const ahora = Date.now();
+        let huboCambios = false;
+        
+        estadoActividades = estadoActividades.map(act => {
+            if (act.activa && act.timestampInicio) {
+                const tiempoTranscurridoEnEstaSesion = Math.floor((ahora - act.timestampInicio) / 1000);
+                const nuevoTiempo = (act.tiempoAcumuladoAntes || 0) + tiempoTranscurridoEnEstaSesion;
+                console.log('⏰ Actividad activa:', act.id, 'Tiempo actualizado:', nuevoTiempo, 'segundos');
+                huboCambios = true;
+                return { ...act, tiempoTranscurrido: nuevoTiempo };
+            }
+            return act;
+        });
+        
+        if (huboCambios) {
+            guardarDatos();
+        }
+        renderizar();
+        
+        // Forzar actualización del temporizador
+        actualizarTemporizador();
+        
+    } else {
+        console.log('📱 Página oculta - El temporizador usa timestamps y seguirá contando');
+    }
+});
+
+// Detectar cuando la página obtiene el foco (backup del visibilitychange)
+window.addEventListener('focus', () => {
+    console.log('🎯 Ventana obtuvo el foco, actualizando...');
+    actualizarTemporizador();
+});
+
+// Verificar estado al cargar (importante para sincronización)
+window.addEventListener('load', () => {
+    console.log('🚀 Página cargada completamente');
+    console.log('📊 Actividades:', actividades.length);
+    console.log('⚡ Estado actividades:', estadoActividades.length);
+    
+    // Verificar si hay actividades activas que necesiten actualización
+    const actividadesActivas = estadoActividades.filter(act => act.activa);
+    if (actividadesActivas.length > 0) {
+        console.log('🔥 Actividades activas encontradas:', actividadesActivas.length);
+        
+        // Forzar actualización inmediata
+        const ahora = Date.now();
+        estadoActividades = estadoActividades.map(act => {
+            if (act.activa && act.timestampInicio) {
+                const tiempoTranscurridoEnEstaSesion = Math.floor((ahora - act.timestampInicio) / 1000);
+                const nuevoTiempo = (act.tiempoAcumuladoAntes || 0) + tiempoTranscurridoEnEstaSesion;
+                console.log('🔄 Recuperando actividad:', act.id, 'Tiempo:', nuevoTiempo);
+                return { ...act, tiempoTranscurrido: nuevoTiempo };
+            }
+            return act;
+        });
+        guardarDatos();
+        renderizar();
+    }
+    
+    // Verificar si hay datos del día anterior (IMPORTANTE)
+    verificarDatosAntiguos();
+    
+    console.log('✅ Inicialización completa');
+});
+
+// Función para calcular tiempo total en milisegundos
+function calcularTiempoTotalConMilesimas() {
+    const ahora = Date.now();
+    let tiempoTotal = 0;
+    
+    estadoActividades.forEach(act => {
+        if (act.activa && act.timestampInicio) {
+            // Tiempo de esta sesión activa en milisegundos
+            const tiempoSesionActual = ahora - act.timestampInicio;
+            tiempoTotal += (act.tiempoAcumuladoAntes || 0) * 1000 + tiempoSesionActual;
+        } else {
+            // Tiempo acumulado de actividades pausadas/completadas
+            tiempoTotal += (act.tiempoTranscurrido || 0) * 1000;
+        }
+    });
+    
+    return tiempoTotal;
+}
+
+// Intervalo rápido SOLO para actualizar el tiempo total con milésimas
+setInterval(() => {
+    const tiempoTotalMs = calcularTiempoTotalConMilesimas();
+    document.getElementById('tiempoTotal').textContent = formatearTiempoConMilesimas(tiempoTotalMs);
+}, 50); // Actualizar cada 50ms para mostrar centésimas
+
+// Actualizar reloj y fecha en tiempo real
+function actualizarReloj() {
+    const ahora = new Date();
+    
+    // Día de la semana
+    const diasSemanaTexto = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const diaSemana = diasSemanaTexto[ahora.getDay()];
+    
+    // Fecha completa
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const dia = ahora.getDate();
+    const mes = meses[ahora.getMonth()];
+    const año = ahora.getFullYear();
+    const fechaFormateada = `${dia} de ${mes}, ${año}`;
+    
+    // Hora en formato 12 horas
+    let horas = ahora.getHours();
+    const minutos = ahora.getMinutes();
+    const segundos = ahora.getSeconds();
+    const periodo = horas >= 12 ? 'PM' : 'AM';
+    
+    // Convertir a formato 12 horas
+    horas = horas % 12;
+    horas = horas ? horas : 12; // 0 se convierte en 12
+    
+    const horaFormateada = `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+    
+    // Actualizar elementos
+    const diaElement = document.getElementById('diaActualTexto');
+    const fechaElement = document.getElementById('fechaActual');
+    const horaElement = document.getElementById('horaActual');
+    const periodoElement = document.getElementById('periodoActual');
+    
+    if (diaElement) diaElement.textContent = diaSemana;
+    if (fechaElement) fechaElement.textContent = fechaFormateada;
+    if (horaElement) horaElement.textContent = horaFormateada;
+    if (periodoElement) periodoElement.textContent = periodo;
+}
+
+// Actualizar reloj cada segundo
+setInterval(actualizarReloj, 1000);
+
+// Actualizar inmediatamente al cargar
+actualizarReloj();
+
+// Solicitar permisos de notificación
+if (Notification.permission === 'default') {
+    Notification.requestPermission();
+}
+
+// Inicializar
+renderizar();
+</script>
+</body>
+</html>
